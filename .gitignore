@@ -1,0 +1,12 @@
+node_modules/
+npm-debug.log*
+.env
+.env.*
+!.env.example
+server.log
+server.err.log
+oilnara-customer-qr-local.svg
+oilnara-customer-qr-local.eps
+.vercel/
+.DS_Store
+Thumbs.db

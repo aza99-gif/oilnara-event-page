@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>오일나라 고객등록 이벤트 관리자 페이지</title>
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem("oilnara-admin-theme");
+        const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
+      })();
+    </script>
+    <link rel="stylesheet" href="/styles.css?v=20260703g">
+    <script src="/admin.js?v=20260703g" defer></script>
+  </head>
+  <body class="admin-page">
+    <section class="login-screen" id="loginScreen">
+      <form class="login-panel" id="loginForm">
+        <span class="admin-logo-lockup" aria-label="오일나라">
+          <img class="admin-logo admin-logo-light" src="/assets/oilnara-logo-light-crop.png" alt="오일나라">
+          <img class="admin-logo admin-logo-dark" src="/assets/oilnara-logo-dark-crop.png" alt="오일나라">
+        </span>
+        <h1>오일나라 고객등록 이벤트 관리자 페이지</h1>
+        <label for="password">관리자 비밀번호</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button class="primary-button" type="submit">로그인</button>
+        <p class="form-message" id="loginMessage"></p>
+      </form>
+    </section>
+
+    <main class="admin-shell" id="adminShell" hidden>
+      <header class="admin-topbar">
+        <div class="admin-title-block">
+          <span class="admin-logo-lockup" aria-label="오일나라">
+            <img class="admin-logo admin-logo-light" src="/assets/oilnara-logo-light-crop.png" alt="오일나라">
+            <img class="admin-logo admin-logo-dark" src="/assets/oilnara-logo-dark-crop.png" alt="오일나라">
+          </span>
+          <div>
+            <h1>오일나라 고객등록 이벤트 관리자 페이지</h1>
+            <p id="landingUrl"></p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="secondary-button" id="copyUrlButton" type="button">주소 복사</button>
+          <a class="secondary-button" id="qrSvgButton" href="/qr.svg" download="oilnara-customer-qr.svg">QR SVG</a>
+          <a class="secondary-button" id="qrEpsButton" href="/qr.eps" download="oilnara-customer-qr.eps">QR EPS</a>
+          <button class="secondary-button" id="logoutButton" type="button">로그아웃</button>
+        </div>
+      </header>
+
+      <section class="admin-grid">
+        <aside class="stats-panel" aria-label="클릭 통계">
+          <div class="stat-card">
+            <span>전체 클릭</span>
+            <strong id="totalClicks">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>오늘 클릭</span>
+            <strong id="todayClicks">0</strong>
+          </div>
+          <div class="stats-list" id="statsList"></div>
+        </aside>
+
+        <form class="settings-panel" id="settingsForm">
+          <section class="form-section">
+            <div class="section-heading">
+              <h2>이벤트 문구</h2>
+              <button class="secondary-button" id="refreshButton" type="button">새로고침</button>
+            </div>
+            <div class="field-grid">
+              <label>
+                이벤트 표시
+                <input name="promotion.eyebrow" type="text" maxlength="40">
+              </label>
+              <label>
+                이벤트 제목
+                <input name="promotion.title" type="text" maxlength="60">
+              </label>
+              <label>
+                이벤트 설명
+                <input name="promotion.subtitle" type="text" maxlength="100">
+              </label>
+              <label>
+                배지 문구
+                <input name="promotion.badge" type="text" maxlength="24">
+              </label>
+            </div>
+            <label>
+              하단 문구
+              <textarea name="footerLines" rows="3" maxlength="240"></textarea>
+            </label>
+          </section>
+
+          <section class="form-section">
+            <div class="section-heading">
+              <h2>연결 링크</h2>
+              <button class="primary-button" type="submit">저장</button>
+            </div>
+            <div class="link-editor" id="linkEditor"></div>
+          </section>
+          <p class="form-message" id="saveMessage"></p>
+        </form>
+
+        <aside class="preview-panel" aria-label="미리보기">
+          <div class="phone-frame">
+            <iframe title="손님 페이지 미리보기" src="/?preview=admin"></iframe>
+          </div>
+        </aside>
+      </section>
+    </main>
+    <button class="admin-theme-toggle" id="adminThemeToggle" type="button" aria-pressed="false">
+      <span id="adminThemeToggleLabel">다크</span>
+    </button>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="오일나라 고객 전용 QR 연결 페이지">
+    <title>오일나라 고객 연결</title>
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem("oilnara-theme");
+        const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
+      })();
+    </script>
+    <link rel="stylesheet" href="/styles.css?v=20260703e">
+    <script src="/app.js?v=20260703e" defer></script>
+  </head>
+  <body class="customer-page">
+    <main class="customer-shell" aria-live="polite">
+      <header class="customer-header">
+        <div class="brand-logo-lockup" aria-label="오일나라">
+          <img class="customer-logo customer-logo-light" src="/assets/oilnara-logo-light-crop.png" alt="오일나라">
+          <img class="customer-logo customer-logo-dark" src="/assets/oilnara-logo-dark-crop.png" alt="오일나라">
+        </div>
+      </header>
+
+      <section class="promo-band" aria-label="방문 고객 이벤트">
+        <div class="promo-copy">
+          <span class="promo-eyebrow" id="promoEyebrow">방문 고객 이벤트</span>
+          <h2 id="promoTitle">오일나라 고객 등록 이벤트!</h2>
+          <p id="promoSubtitle">편하신 방법으로 진행 후 현장 직원에게 보여주세요</p>
+        </div>
+      </section>
+
+      <nav class="customer-links" id="customerLinks" aria-label="고객 메뉴"></nav>
+
+      <p class="not-ready-message" id="notReadyMessage" hidden>아직 준비 중인 링크입니다.</p>
+
+      <footer class="customer-footer" id="customerFooter"></footer>
+    </main>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">
+      <span id="themeToggleLabel">다크</span>
+    </button>
+  </body>
+</html>

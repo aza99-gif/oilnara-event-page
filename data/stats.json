@@ -1,0 +1,37 @@
+{
+  "totalClicks": 6,
+  "links": {
+    "customerForm": {
+      "total": 1,
+      "lastClickedAt": "2026-07-03T02:35:30.647Z"
+    },
+    "kakaoChannel": {
+      "total": 2,
+      "lastClickedAt": "2026-07-03T02:35:34.523Z"
+    },
+    "naverReview": {
+      "total": 1,
+      "lastClickedAt": "2026-07-03T02:35:36.366Z"
+    },
+    "naverStore": {
+      "total": 1,
+      "lastClickedAt": "2026-07-03T02:35:38.254Z"
+    },
+    "ownMall": {
+      "total": 1,
+      "lastClickedAt": "2026-07-03T02:35:40.113Z"
+    }
+  },
+  "days": {
+    "2026-07-03": {
+      "total": 6,
+      "links": {
+        "customerForm": 1,
+        "kakaoChannel": 2,
+        "naverReview": 1,
+        "naverStore": 1,
+        "ownMall": 1
+      }
+    }
+  }
+}
