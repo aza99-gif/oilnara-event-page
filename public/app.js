@@ -95,6 +95,8 @@ function renderSite(site) {
 
   const footer = document.getElementById("customerFooter");
   footer.innerHTML = (site.footerLines || []).map((line) => `<span>${escapeHtml(line)}</span>`).join("");
+
+  document.getElementById("customerShell")?.classList.remove("is-loading");
 }
 
 window.addEventListener("message", (event) => {

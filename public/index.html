@@ -12,11 +12,11 @@
         document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
       })();
     </script>
-    <link rel="stylesheet" href="/styles.css?v=20260703e">
-    <script src="/app.js?v=20260703e" defer></script>
+    <link rel="stylesheet" href="/styles.css?v=20260703f">
+    <script src="/app.js?v=20260703f" defer></script>
   </head>
   <body class="customer-page">
-    <main class="customer-shell" aria-live="polite">
+    <main class="customer-shell is-loading" id="customerShell" aria-live="polite">
       <header class="customer-header">
         <div class="brand-logo-lockup" aria-label="오일나라">
           <img class="customer-logo customer-logo-light" src="/assets/oilnara-logo-light-crop.png" alt="오일나라">
@@ -26,9 +26,9 @@
 
       <section class="promo-band" aria-label="방문 고객 이벤트">
         <div class="promo-copy">
-          <span class="promo-eyebrow" id="promoEyebrow">방문 고객 이벤트</span>
-          <h2 id="promoTitle">오일나라 고객 등록 이벤트!</h2>
-          <p id="promoSubtitle">편하신 방법으로 진행 후 현장 직원에게 보여주세요</p>
+          <span class="promo-eyebrow" id="promoEyebrow"></span>
+          <h2 id="promoTitle"></h2>
+          <p id="promoSubtitle"></p>
         </div>
       </section>
 

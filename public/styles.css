@@ -100,6 +100,12 @@ html[data-theme="dark"] .admin-logo-dark {
   margin: 0 auto;
 }
 
+.customer-shell.is-loading .promo-band,
+.customer-shell.is-loading .customer-links,
+.customer-shell.is-loading .customer-footer {
+  display: none;
+}
+
 .customer-header {
   padding: 0 2px 18px;
 }
