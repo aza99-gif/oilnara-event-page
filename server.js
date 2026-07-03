@@ -19,6 +19,7 @@ const DATA_DIR = path.join(ROOT, "data");
 const SITE_FILE = path.join(DATA_DIR, "site.json");
 const STATS_FILE = path.join(DATA_DIR, "stats.json");
 const SESSION_COOKIE = "oilnara_admin";
+const memoryStore = new Map();
 const DAY_FORMATTER = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul",
   year: "numeric",
@@ -86,7 +87,10 @@ async function supabaseRequest(pathname, options = {}) {
 }
 
 async function readStoredJson(key, filePath, fallback) {
-  if (!USE_SUPABASE) return readJson(filePath, fallback);
+  if (!USE_SUPABASE) {
+    if (memoryStore.has(key)) return memoryStore.get(key);
+    return readJson(filePath, fallback);
+  }
 
   const rows = await supabaseRequest(
     `/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(key)}&select=value&limit=1`
@@ -100,7 +104,12 @@ async function readStoredJson(key, filePath, fallback) {
 
 async function writeStoredJson(key, filePath, value) {
   if (!USE_SUPABASE) {
-    writeJson(filePath, value);
+    memoryStore.set(key, value);
+    try {
+      writeJson(filePath, value);
+    } catch (error) {
+      console.warn(`Local file write skipped for ${key}: ${error.message}`);
+    }
     return;
   }
 
