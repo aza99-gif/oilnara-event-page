@@ -11,7 +11,7 @@ npm start
 
 - 고객 화면: `http://localhost:4173/`
 - 관리자 화면: `http://localhost:4173/admin`
-- 기본 관리자 비밀번호: `oilnara2026!`
+- 로컬 기본 관리자 비밀번호: `oilnara2026!`
 
 운영 환경에서는 반드시 환경변수로 관리자 비밀번호와 세션 키를 지정하세요.
 

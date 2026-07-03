@@ -6,7 +6,8 @@ const { URL } = require("node:url");
 const QRCode = require("qrcode");
 
 const PORT = Number(process.env.PORT || 4173);
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "oilnara2026!";
+const IS_PRODUCTION = Boolean(process.env.VERCEL || process.env.NODE_ENV === "production");
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (IS_PRODUCTION ? "" : "oilnara2026!");
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -452,6 +453,10 @@ async function handleApi(req, res, requestUrl) {
   if (req.method === "POST" && requestUrl.pathname === "/api/login") {
     try {
       const body = await readBody(req);
+      if (!ADMIN_PASSWORD) {
+        sendJson(res, 503, { ok: false, message: "관리자 비밀번호 환경변수가 필요합니다." });
+        return true;
+      }
       if (body.password === ADMIN_PASSWORD) {
         issueSession(res, req);
         sendJson(res, 200, { ok: true });
