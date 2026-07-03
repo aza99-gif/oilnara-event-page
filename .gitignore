@@ -10,3 +10,5 @@ oilnara-customer-qr-local.eps
 .vercel/
 .DS_Store
 Thumbs.db
+
+.vercel
