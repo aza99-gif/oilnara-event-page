@@ -33,4 +33,18 @@ npm start
 
 ## 배포 메모
 
-현재 버전은 `data/site.json`, `data/stats.json` 파일에 관리자 설정과 클릭 통계를 저장합니다. Vercel 같은 서버리스 환경에서는 파일 저장이 영구 보장되지 않을 수 있으므로, 운영 배포 시 Supabase 같은 외부 DB 저장소 연결을 권장합니다.
+로컬에서는 `data/site.json`, `data/stats.json` 파일에 관리자 설정과 클릭 통계를 저장합니다.
+
+Vercel 운영 배포에서는 Supabase 환경변수를 넣으면 같은 데이터가 Supabase에 저장됩니다.
+
+1. Supabase SQL Editor에서 `supabase/schema.sql` 실행
+2. Vercel 환경변수 등록
+   - `ADMIN_PASSWORD`
+   - `SESSION_SECRET`
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_TABLE=oilnara_event_store`
+3. Vercel에서 GitHub 저장소 연결
+4. 도메인 `event.oilnara.com` 연결
+
+QR 인쇄용 파일은 배포 완료 후 `https://event.oilnara.com/qr.svg`, `https://event.oilnara.com/qr.eps`에서 내려받으세요.

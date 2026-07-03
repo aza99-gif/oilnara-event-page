@@ -8,6 +8,10 @@ const QRCode = require("qrcode");
 const PORT = Number(process.env.PORT || 4173);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "oilnara2026!";
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const SUPABASE_TABLE = process.env.SUPABASE_TABLE || "oilnara_event_store";
+const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
@@ -59,6 +63,54 @@ function writeJson(filePath, value) {
   const tempPath = `${filePath}.${process.pid}.tmp`;
   fs.writeFileSync(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   fs.renameSync(tempPath, filePath);
+}
+
+async function supabaseRequest(pathname, options = {}) {
+  const response = await fetch(`${SUPABASE_URL}${pathname}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`Supabase request failed: ${response.status} ${message}`);
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+async function readStoredJson(key, filePath, fallback) {
+  if (!USE_SUPABASE) return readJson(filePath, fallback);
+
+  const rows = await supabaseRequest(
+    `/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(key)}&select=value&limit=1`
+  );
+  if (Array.isArray(rows) && rows[0]?.value) return rows[0].value;
+
+  const initialValue = readJson(filePath, fallback);
+  await writeStoredJson(key, filePath, initialValue);
+  return initialValue;
+}
+
+async function writeStoredJson(key, filePath, value) {
+  if (!USE_SUPABASE) {
+    writeJson(filePath, value);
+    return;
+  }
+
+  await supabaseRequest(`/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {
+    method: "POST",
+    headers: {
+      Prefer: "resolution=merge-duplicates"
+    },
+    body: JSON.stringify({ key, value })
+  });
 }
 
 function send(res, statusCode, body, headers = {}) {
@@ -275,8 +327,8 @@ function dayKey(date) {
   return DAY_FORMATTER.format(date);
 }
 
-function recordClick(linkId) {
-  const stats = normalizeStats(readJson(STATS_FILE, defaultStats()));
+async function recordClick(linkId) {
+  const stats = normalizeStats(await readStoredJson("stats", STATS_FILE, defaultStats()));
   const now = new Date();
   const today = dayKey(now);
 
@@ -293,7 +345,7 @@ function recordClick(linkId) {
   stats.days[today].total += 1;
   stats.days[today].links[linkId] = Number(stats.days[today].links[linkId] || 0) + 1;
 
-  writeJson(STATS_FILE, stats);
+  await writeStoredJson("stats", STATS_FILE, stats);
 }
 
 function parseCookies(req) {
@@ -350,6 +402,7 @@ function isAuthenticated(req) {
 }
 
 function ensureDataFiles() {
+  if (USE_SUPABASE) return;
   fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(SITE_FILE)) writeJson(SITE_FILE, sanitizeSite({}));
   if (!fs.existsSync(STATS_FILE)) writeJson(STATS_FILE, defaultStats());
@@ -382,7 +435,7 @@ function serveStatic(req, res, requestUrl) {
 
 async function handleApi(req, res, requestUrl) {
   if (req.method === "GET" && requestUrl.pathname === "/api/site") {
-    const site = sanitizeSite(readJson(SITE_FILE, {}));
+    const site = sanitizeSite(await readStoredJson("site", SITE_FILE, {}));
     sendJson(res, 200, publicSite(site));
     return true;
   }
@@ -411,8 +464,8 @@ async function handleApi(req, res, requestUrl) {
     if (req.method === "GET" && requestUrl.pathname === "/api/admin/site") {
       sendJson(res, 200, {
         ok: true,
-        site: sanitizeSite(readJson(SITE_FILE, {})),
-        stats: normalizeStats(readJson(STATS_FILE, defaultStats()))
+        site: sanitizeSite(await readStoredJson("site", SITE_FILE, {})),
+        stats: normalizeStats(await readStoredJson("stats", STATS_FILE, defaultStats()))
       });
       return true;
     }
@@ -421,11 +474,11 @@ async function handleApi(req, res, requestUrl) {
       try {
         const body = await readBody(req);
         const site = sanitizeSite(body.site);
-        writeJson(SITE_FILE, site);
+        await writeStoredJson("site", SITE_FILE, site);
         sendJson(res, 200, {
           ok: true,
           site,
-          stats: normalizeStats(readJson(STATS_FILE, defaultStats()))
+          stats: normalizeStats(await readStoredJson("stats", STATS_FILE, defaultStats()))
         });
       } catch (error) {
         sendJson(res, 400, { ok: false, message: error.message });
@@ -478,19 +531,19 @@ async function handleQr(req, res, requestUrl) {
   return false;
 }
 
-function handleGo(req, res, requestUrl) {
+async function handleGo(req, res, requestUrl) {
   const match = requestUrl.pathname.match(/^\/go\/([^/]+)$/);
   if (!match) return false;
 
   const linkId = decodeURIComponent(match[1]);
-  const site = sanitizeSite(readJson(SITE_FILE, {}));
+  const site = sanitizeSite(await readStoredJson("site", SITE_FILE, {}));
   const link = site.links.find((item) => item.id === linkId);
   if (!link || !link.enabled || !link.url) {
     send(res, 302, "", { Location: "/?status=not-ready" });
     return true;
   }
 
-  recordClick(link.id);
+  await recordClick(link.id);
   send(res, 302, "", {
     Location: link.url,
     "Cache-Control": "no-store"
@@ -504,7 +557,7 @@ async function handleRequest(req, res) {
   try {
     if (await handleQr(req, res, requestUrl)) return;
     if (await handleApi(req, res, requestUrl)) return;
-    if (handleGo(req, res, requestUrl)) return;
+    if (await handleGo(req, res, requestUrl)) return;
     serveStatic(req, res, requestUrl);
   } catch (error) {
     sendJson(res, 500, { ok: false, message: "서버 오류가 발생했습니다." });
@@ -514,8 +567,13 @@ async function handleRequest(req, res) {
 
 ensureDataFiles();
 
-http.createServer(handleRequest).listen(PORT, () => {
-  console.log(`Oilnara QR server running at http://localhost:${PORT}`);
-  console.log(`Admin page: http://localhost:${PORT}/admin`);
-  console.log(`Default admin password: ${ADMIN_PASSWORD}`);
-});
+if (require.main === module) {
+  http.createServer(handleRequest).listen(PORT, () => {
+    console.log(`Oilnara QR server running at http://localhost:${PORT}`);
+    console.log(`Admin page: http://localhost:${PORT}/admin`);
+    console.log(`Default admin password: ${ADMIN_PASSWORD}`);
+    if (USE_SUPABASE) console.log("Storage: Supabase");
+  });
+}
+
+module.exports = { handleRequest };
