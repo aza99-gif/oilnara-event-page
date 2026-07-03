@@ -1,37 +1,26 @@
 {
-  "totalClicks": 6,
+  "totalClicks": 0,
   "links": {
     "customerForm": {
-      "total": 1,
-      "lastClickedAt": "2026-07-03T02:35:30.647Z"
+      "total": 0,
+      "lastClickedAt": null
     },
     "kakaoChannel": {
-      "total": 2,
-      "lastClickedAt": "2026-07-03T02:35:34.523Z"
+      "total": 0,
+      "lastClickedAt": null
     },
     "naverReview": {
-      "total": 1,
-      "lastClickedAt": "2026-07-03T02:35:36.366Z"
+      "total": 0,
+      "lastClickedAt": null
     },
     "naverStore": {
-      "total": 1,
-      "lastClickedAt": "2026-07-03T02:35:38.254Z"
+      "total": 0,
+      "lastClickedAt": null
     },
     "ownMall": {
-      "total": 1,
-      "lastClickedAt": "2026-07-03T02:35:40.113Z"
+      "total": 0,
+      "lastClickedAt": null
     }
   },
-  "days": {
-    "2026-07-03": {
-      "total": 6,
-      "links": {
-        "customerForm": 1,
-        "kakaoChannel": 2,
-        "naverReview": 1,
-        "naverStore": 1,
-        "ownMall": 1
-      }
-    }
-  }
+  "days": {}
 }
