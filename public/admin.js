@@ -2,6 +2,7 @@ let currentSite = null;
 let currentStats = null;
 
 const MAX_ICON_IMAGE_BYTES = 700 * 1024;
+const ICON_IMAGE_SIZE = 160;
 const ADMIN_THEME_KEY = "oilnara-admin-theme";
 const DEFAULT_ICON_BG = {
   gold: "#f3d77b",
@@ -185,7 +186,7 @@ function fillForm(site) {
           <input data-field="iconImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
         </label>
         <button class="secondary-button compact-button" data-action="clearIconImage" type="button">이미지 삭제</button>
-        <small>정사각형 PNG/JPG/WebP 권장, 700KB 이하</small>
+        <small>정사각형 PNG/JPG/WebP 권장, 저장 시 자동 최적화</small>
       </div>
       <label>
         설명
@@ -269,6 +270,37 @@ function readFileAsDataUrl(file) {
     reader.addEventListener("error", () => reject(new Error("이미지를 읽지 못했습니다.")));
     reader.readAsDataURL(file);
   });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", () => reject(new Error("이미지를 불러오지 못했습니다.")));
+    image.src = src;
+  });
+}
+
+async function readOptimizedIconImage(file) {
+  const source = await readFileAsDataUrl(file);
+  const image = await loadImage(source);
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  if (!context) return source;
+
+  canvas.width = ICON_IMAGE_SIZE;
+  canvas.height = ICON_IMAGE_SIZE;
+  context.clearRect(0, 0, ICON_IMAGE_SIZE, ICON_IMAGE_SIZE);
+
+  const scale = Math.min(1, ICON_IMAGE_SIZE / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const x = Math.round((ICON_IMAGE_SIZE - width) / 2);
+  const y = Math.round((ICON_IMAGE_SIZE - height) / 2);
+  context.drawImage(image, x, y, width, height);
+
+  return canvas.toDataURL("image/webp", 0.86);
 }
 
 async function api(path, options = {}) {
@@ -370,10 +402,10 @@ linkEditor.addEventListener("change", async (event) => {
   }
 
   try {
-    row.dataset.iconImage = await readFileAsDataUrl(file);
+    row.dataset.iconImage = await readOptimizedIconImage(file);
     updateIconPreview(row);
     schedulePreviewSync();
-    setMessage(saveMessage, "이미지를 선택했습니다. 저장 버튼을 눌러 반영하세요.");
+    setMessage(saveMessage, "이미지를 최적화했습니다. 저장 버튼을 눌러 반영하세요.");
   } catch (error) {
     setMessage(saveMessage, error.message, "error");
   }
