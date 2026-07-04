@@ -21,6 +21,8 @@ const SITE_FILE = path.join(DATA_DIR, "site.json");
 const STATS_FILE = path.join(DATA_DIR, "stats.json");
 const SESSION_COOKIE = "oilnara_admin";
 const memoryStore = new Map();
+const storeCache = new Map();
+const STORE_CACHE_TTL_MS = 60_000;
 const DAY_FORMATTER = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul",
   year: "numeric",
@@ -94,10 +96,23 @@ async function readStoredJson(key, filePath, fallback) {
     return readJson(filePath, fallback);
   }
 
+  if (key === "site") {
+    const cached = storeCache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+  }
+
   const rows = await supabaseRequest(
     `/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(key)}&select=value&limit=1`
   );
-  if (Array.isArray(rows) && rows[0]?.value) return rows[0].value;
+  if (Array.isArray(rows) && rows[0]?.value) {
+    if (key === "site") {
+      storeCache.set(key, {
+        value: rows[0].value,
+        expiresAt: Date.now() + STORE_CACHE_TTL_MS
+      });
+    }
+    return rows[0].value;
+  }
 
   const initialValue = readJson(filePath, fallback);
   await writeStoredJson(key, filePath, initialValue);
@@ -122,6 +137,13 @@ async function writeStoredJson(key, filePath, value) {
     },
     body: JSON.stringify({ key, value })
   });
+
+  if (key === "site") {
+    storeCache.set(key, {
+      value,
+      expiresAt: Date.now() + STORE_CACHE_TTL_MS
+    });
+  }
 }
 
 function send(res, statusCode, body, headers = {}) {
@@ -177,7 +199,9 @@ function cleanIconImage(value) {
   const trimmed = value.trim();
   if (!trimmed) return "";
   if (trimmed.length > 950_000) return "";
-  return /^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(trimmed) ? trimmed : "";
+  if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(trimmed)) return trimmed;
+  if (/^\/assets\/[a-z0-9/_-]+\.(png|jpe?g|webp|gif|svg)(\?[a-z0-9=&._-]+)?$/i.test(trimmed)) return trimmed;
+  return "";
 }
 
 function cleanColor(value, fallback = "") {
